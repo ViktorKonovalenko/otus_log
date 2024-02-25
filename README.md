@@ -9,4 +9,6 @@
 Проверяем работу логирования access nginx согласно методичке<br>
 ![image](https://github.com/ViktorKonovalenko/otus_log/assets/32430041/e30f6ed2-9aad-4992-b232-f1c28efd0ac4)
 Проверяем работу аудита изменения конфигурации nginx согласно методичке<br>
-![image](https://github.com/ViktorKonovalenko/otus_log/assets/32430041/6bb1ccdf-80b4-4747-97f3-db6c5ceb0183)
+![image](https://github.com/ViktorKonovalenko/otus_log/assets/32430041/5391882b-aee6-4661-9684-b07f11facef7)
+
+Логирование с помощью rsyslog настроено.
