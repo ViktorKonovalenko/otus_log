@@ -1,0 +1,107 @@
+---
+- name: 'Установка nginx и настройка логирования на другой сервер'
+  hosts: all
+  become: yes
+  tasks:
+    - name: 'Установка epel-release'
+      yum: 
+        name: epel-release
+        state: latest
+      when: "'web' in inventory_hostname"
+
+    - name: 'Установка nginx'
+      yum:
+        name: nginx
+        state: latest
+      when: "'web' in inventory_hostname"
+
+    - name: 'Копирование конфига'
+      copy:
+        src: ./nginx.conf
+        dest: /etc/nginx/nginx.conf
+      when: "'web' in inventory_hostname"
+
+    - name: 'перезапуск службы nginx'
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes 
+      when: "'web' in inventory_hostname"
+    
+    - name: 'НАстройка аудита'
+      copy:
+        src: ./audit.rules
+        dest: /etc/audit/rules.d/audit.rules   
+      when: "'web' in inventory_hostname"
+
+    - name: 'Перезапууск службы audit'
+      shell: service auditd restart
+      when: "'web' in inventory_hostname"
+
+    - name: 'Установка audispd-plugins'
+      yum:
+        name: audispd-plugins
+        state: latest
+      when: "'web' in inventory_hostname"
+
+    - name: 'Меняем auditd.conf'
+      lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^log_format = '
+        line: log_format = RAW
+      when: "'web' in inventory_hostname"
+
+    - name: 'Меняем auditd.conf'
+      lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^name_format = '
+        line: name_format = HOSTNAME
+      when: "'web' in inventory_hostname"
+
+    - name: 'Меняем au-remote.conf'
+      lineinfile:
+        path: /etc/audisp/plugins.d/au-remote.conf
+        regexp: '^active = '
+        line: active = yes
+      when: "'web' in inventory_hostname"
+
+    - name: 'Меняем audisp-remote.conf'
+      lineinfile:
+        path: /etc/audisp/audisp-remote.conf
+        regexp: '^remote_server = '
+        line: remote_server = 192.168.56.11
+      when: "'web' in inventory_hostname"
+
+    - name: 'Меняем audisp-remote.conf'
+      lineinfile:
+        path: /etc/audisp/audisp-remote.conf
+        regexp: '^port = '
+        line: port = 60
+      when: "'web' in inventory_hostname"
+
+    - name: 'Перезапууск службы audit'
+      shell: service auditd restart
+      when: "'web' in inventory_hostname"
+
+    - name: 'Меняем конфиг rsyslog'
+      copy:
+        src: ./rsyslog.conf
+        dest: /etc/rsyslog.conf
+      when: "'log' in inventory_hostname"
+
+    - name: 'перезагрузка службы'
+      systemd:
+        name: rsyslog
+        state: restarted
+      when: "'log' in inventory_hostname"
+
+    - name: 'Меняем auditd.conf'
+      lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^tcp_listen_port = '
+        line: tcp_listen_port = 60
+      when: "'log' in inventory_hostname"
+
+    - name: 'перезагрузка auditd'
+      shell: service auditd restart
+      when: "'log' in inventory_hostname"
